@@ -1,0 +1,134 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Cliente {
+  id_cedula String @id @db.VarChar(50)
+  nombre    String @db.VarChar(50)
+  apellido  String @db.VarChar(50)
+  direccion String @db.VarChar(100)
+
+  // Relaciones
+  contratos Contrato[]
+
+  @@map("cliente")
+}
+
+model Contrato {
+  id_contrato     String @id @db.VarChar(50)
+  numero_servicio String @db.VarChar(50)
+  ced_cliente     String @db.VarChar(50)
+
+  // Relaciones
+  cliente                Cliente             @relation(fields: [ced_cliente], references: [id_cedula])
+  equipos                Equipo[]
+  movimientos_actual     MovimientoEquipo[]  @relation("ContratoActual")
+  movimientos_anterior   MovimientoEquipo[]  @relation("ContratoAnterior")
+
+  @@map("contrato")
+}
+
+model Equipo {
+  serie         String  @id @db.VarChar(50)
+  modelo        String  @db.VarChar(50)
+  f_adquisicion Int?
+  estado        String? @db.VarChar(20)
+  tipo          String? @db.VarChar(20)
+  ubicacion     String? @db.VarChar(50)
+
+  // Relaciones
+  fecha_adquisicion FechaAdquisicion? @relation(fields: [f_adquisicion], references: [id_fecha])
+  contrato         Contrato?         @relation(fields: [ubicacion], references: [id_contrato])
+
+  @@map("equipo")
+}
+
+model Tecnico {
+  id_tecnico Int    @id @default(autoincrement())
+  nombre     String @db.VarChar(50)
+  apellido   String @db.VarChar(50)
+
+  // Relaciones
+  movimientos MovimientoEquipo[]
+
+  @@map("tecnico")
+}
+
+model MovimientoEquipo {
+  id_movimiento     Int     @id @default(autoincrement())
+  contrato_anterior String? @db.VarChar(50)
+  contrato_actual   String? @db.VarChar(50)
+  tipo_movimiento   String? @db.VarChar(20)
+  observacion       String?
+  id_tecnico        Int?
+
+  // Relaciones
+  tecnico           Tecnico?  @relation(fields: [id_tecnico], references: [id_tecnico])
+  contrato_act      Contrato? @relation("ContratoActual", fields: [contrato_actual], references: [id_contrato])
+  contrato_ant      Contrato? @relation("ContratoAnterior", fields: [contrato_anterior], references: [id_contrato])
+
+  @@map("movimiento_equipo")
+}
+
+model FormaAdquisicion {
+  id_forma_adq Int    @id @default(autoincrement())
+  forma        String @db.VarChar(50)
+
+  // Relaciones
+  fechas_adquisicion FechaAdquisicion[]
+
+  @@map("forma_adquisicion")
+}
+
+model FechaAdquisicion {
+  id_fecha      Int @id @default(autoincrement())
+  id_forma_adq  Int?
+  mes           Int
+  anio          Int
+
+  // Relaciones
+  forma_adquisicion FormaAdquisicion? @relation(fields: [id_forma_adq], references: [id_forma_adq])
+  equipos          Equipo[]
+
+  @@map("fecha_adquisicion")
+}
+
+model Usuarios {
+  id_usuario Int    @id @default(autoincrement())
+  username   String @unique @db.VarChar(50)
+  password   String @db.VarChar(255)
+  rol        String @db.VarChar(20)
+
+  @@map("usuarios")
+}
+
+// Enums para validación
+enum EstadoEquipo {
+  Nuevo
+  Buen
+  Mal
+}
+
+enum TipoEquipo {
+  ONU
+  ONT
+  R_compl
+}
+
+enum TipoMovimiento {
+  cambio
+  instalacion
+}
+
+enum RolUsuario {
+  admin
+  cliente
+}
