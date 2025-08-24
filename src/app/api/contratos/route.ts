@@ -22,3 +22,22 @@ export async function GET() {
     )
   }
 }
+
+export async function POST(request: NextRequest) {
+  try {
+    const data = await request.json()
+    const newContrato = await prisma.contrato.create({
+      data: {
+        ...data,
+      },
+    })
+
+    return NextResponse.json(newContrato, { status: 201 })
+  } catch (error) {
+    console.error('Error creating contrato:', error)
+    return NextResponse.json(
+      { error: 'Error al crear contrato' },
+      { status: 500 }
+    )
+  }
+}
