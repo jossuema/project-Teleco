@@ -35,7 +35,7 @@ export const tecnicoSchema = z.object({
 export const movimientoEquipoSchema = z.object({
   contrato_anterior: z.string().max(50).optional().nullable(),
   contrato_actual: z.string().max(50).optional().nullable(),
-  tipo_movimiento: z.enum(["cambio", "instalacion"]).optional().nullable(),
+  tipo_movimiento: z.string().min(1).max(50).optional().nullable(),
   observacion: z.string().optional().nullable(),
   id_tecnico: z.number().optional().nullable(),
 })
